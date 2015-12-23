@@ -98,22 +98,39 @@ trigger CreateIIFromLineItem on Line_Item__c (after update) {
             }
      }
 			Database.insert(IIL, false) ;		
-        
+			
+			
  // Update the Line Item Object with the Inventory Item ID in case it is needed in the future.               
 			
     		List<Line_Item__c> LineItemsToUpdate = new  List<Line_Item__c>();  
-    
-           	For(Line_Item__c LITWO: LIL)
-           {
-               
-               IF(LITWO.Order_Complete__c == TRUE)
+        	
+        	List <Inventory_Item__c> invItemsInserted = [Select Id, Name, Line_Item_ID__c, Product_Name__c From Inventory_Item__c where Inventory_Item__c.id in :IIL]; 
+            
+           		For(Line_Item__c LITWO: LIL)
+           		{
+           			IF(LITWO.Order_Complete__c == TRUE)
                		{
-                        System.debug(LITWO.Item_Created__c);
-               			LITWO.Item_Created__c = TRUE;
-                        System.debug(LITWO.Item_Created__c);
-               			LineItemsToUpdate.add(LITWO);
+                     	LITWO.Item_Created__c = TRUE;
+                        //LineItemsToUpdate.add(LITWO);
                     }
-           }
+                    
+                    For (Inventory_item__c inventory : invItemsInserted)
+                    {
+                        if (inventory.Line_Item_ID__c == LITWO.ID)
+                        {
+                            if (LITWO.Inventory_Items_Created__c == null)
+                            {
+                                LITWO.Inventory_Items_Created__c = '<a href='+System.URL.getSalesforceBaseURL().toExternalForm()+ '/' + inventory.id+'>'+ inventory.Name + ' - ' + inventory.Product_Name__c +'</a>';
+                            }
+                            else
+                            {
+                                LITWO.Inventory_Items_Created__c = LITWO.Inventory_Items_Created__c + '<br/><br/>' +'<a href='+System.URL.getSalesforceBaseURL().toExternalForm()+ '/' + inventory.id+'>'+inventory.Name+ ' - ' + inventory.Product_Name__c +'</a>';
+                            }
+                        }
+                    }
+                    LineItemsToUpdate.add(LITWO);
+           		}
+           	
 	    	Recursive.setWorking();
     		update LineItemsToUpdate;
 	}
