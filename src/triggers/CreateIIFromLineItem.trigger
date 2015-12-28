@@ -100,7 +100,7 @@ trigger CreateIIFromLineItem on Line_Item__c (after update) {
 			Database.insert(IIL, false) ;		
 			
 			
- // Update the Line Item Object with the Inventory Item ID in case it is needed in the future.               
+ // Update the Line Item Object with a link to the Inventory Item in case it needs to be referenced in the future.               
 			
     		List<Line_Item__c> LineItemsToUpdate = new  List<Line_Item__c>();  
         	
